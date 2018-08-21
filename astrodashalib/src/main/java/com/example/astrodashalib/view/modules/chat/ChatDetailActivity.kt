@@ -1,5 +1,6 @@
 package com.example.astrodashalib.view.modules.chat
 
+import android.app.Activity
 import android.content.*
 import android.os.AsyncTask
 import android.os.Build
@@ -23,6 +24,7 @@ import com.example.astrodashalib.service.faye.FayeIntentService
 import com.example.astrodashalib.utils.BaseConfiguration.*
 import com.example.astrodashalib.view.adapter.ChatAdapter
 import com.example.astrodashalib.view.adapter.SimpleDialogAdapter
+import com.example.astrodashalib.view.modules.pricingPlan.PricingPlanActivity
 import com.example.astrodashalib.view.widgets.dialog.MaterialDialog
 import com.example.astrodashalib.view.widgets.dialog.ProgressDialogFragment
 import com.google.gson.Gson
@@ -97,14 +99,24 @@ class ChatDetailActivity : AppCompatActivity(), ChatDetailContract.View, ChatAda
                 if (loginUserId.equals("-1") || chatUserId.isNullOrEmpty()) {
                     toast("Fill birth details")
                 } else if (chat_edit_text.text.toString().trim().isNotEmpty()) {
-                    if (getFreeQuestionCount(applicationContext) >= 1) {
+                    val chatCount = getPlanChatCount(loginUserId?:"",this@ChatDetailActivity)
+
+                    if(chatCount > 0 ){
+                        messageController?.sendChat(chat_edit_text.text.toString(), chatUserId, "", "")
+                        setPlanChatCount(loginUserId?:"",chatCount-1,this@ChatDetailActivity)
+                    } else {
+                        chatModel = messageController?.saveChat(chat_edit_text.text.toString(), chatUserId, "", "")
+                        coordinator_ll.hideKeyboard()
+                        this@ChatDetailActivity.startActivityForResult(PricingPlanActivity.createIntent(this@ChatDetailActivity,style,chat_edit_text.text.toString(),loginUserId?:""),PRICING_PLAN_REQUEST_CODE)
+                    }
+                    /*if (getFreeQuestionCount(applicationContext) >= 1) {
                         showPaymentDialog()
                         chatModel = messageController?.saveChat(chat_edit_text.text.toString(), chatUserId, "", "")
                         coordinator_ll.hideKeyboard()
                     } else {
                         messageController?.sendChat(chat_edit_text.text.toString(), chatUserId, "", "")
                         setFreeQuestionCount(1, applicationContext)
-                    }
+                    }*/
 
                     chat_edit_text.setText("")
                 }
@@ -117,12 +129,6 @@ class ChatDetailActivity : AppCompatActivity(), ChatDetailContract.View, ChatAda
             e.printStackTrace()
         }
     }
-
-
-    /*fun showAstroLoader() {
-        val handler = Handler()
-
-    }*/
 
     private fun initaliseChatUsersData() {
         val userName = intent.getStringExtra(NAME) ?: ""
@@ -658,6 +664,26 @@ class ChatDetailActivity : AppCompatActivity(), ChatDetailContract.View, ChatAda
             updateRecievedChatStatus(true, true)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        try {
+            if (requestCode == PRICING_PLAN_REQUEST_CODE ){
+                if(resultCode == Activity.RESULT_OK) {
+                    val chatTxt = data.getStringExtra("chat")
+                    chatModel?.let { messageController?.sendChat(it) }
+                }else {
+                    val chatTxt = data.getStringExtra("chat")
+                    chatModel?.let { messageController?.sendChat(it) }
+                }
+
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+
+    }
+
 
     override fun onCrmUserError() {
         if (getDeviceId(applicationContext).isEmpty())
@@ -769,6 +795,9 @@ class ChatDetailActivity : AppCompatActivity(), ChatDetailContract.View, ChatAda
 
         @JvmField
         val ANTAR_DASHA_REQUEST_BODY = "antarDashaRequestBody"
+
+        @JvmField
+        val PRICING_PLAN_REQUEST_CODE = 12623
 
 
         @JvmStatic

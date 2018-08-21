@@ -1,5 +1,7 @@
 package com.example.astrodashalib.view.modules.pricingPlan
 
+import android.app.Activity
+import android.app.PendingIntent.getActivity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -10,15 +12,11 @@ import com.example.astrodashalib.Constant
 import com.example.astrodashalib.R
 import com.example.astrodashalib.complain
 import com.example.astrodashalib.data.models.*
-import com.example.astrodashalib.helper.getEmail
-import com.example.astrodashalib.helper.getPhoneNumber
-import com.example.astrodashalib.helper.getUserId
-import com.example.astrodashalib.model.CurrentAntardashaFalRequestBody
+import com.example.astrodashalib.helper.*
 import com.example.astrodashalib.toast
 import com.example.astrodashalib.utils.BaseConfiguration
 import com.example.astrodashalib.view.adapter.SimpleDialogAdapter
 import com.example.astrodashalib.view.modules.chat.ChatDetailActivity
-import com.example.astrodashalib.view.modules.chat.ChatDetailActivity.Companion.STYLE
 import com.example.astrodashalib.view.widgets.dialog.MaterialDialog
 import com.example.astrodashalib.view.widgets.dialog.ProgressDialogFragment
 import com.google.gson.Gson
@@ -30,6 +28,7 @@ import com.paytm.pgsdk.PaytmPaymentTransactionCallback
 import kotlinx.android.synthetic.main.activity_pricing_plan.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.HashMap
 
 class PricingPlanActivity : AppCompatActivity(),PricingPlanContract.View {
 
@@ -41,8 +40,10 @@ class PricingPlanActivity : AppCompatActivity(),PricingPlanContract.View {
 
     var mPresenter: PricingPlanContract.Presenter? = null
     var pricingPlan=0;
-
     var chatTxt:String="";
+    var userId: String = ""
+    val pricingPlanChatCountHashmap : HashMap<Int,Int> = hashMapOf(500 to 10,1200 to 50, 2200 to 100);
+    val pricingPlanValidityHashmap : HashMap<Int,Int> = hashMapOf(500 to 30,1200 to 90, 2200 to 120);
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val style = intent.getIntExtra(ChatDetailActivity.STYLE, 0)
@@ -53,6 +54,7 @@ class PricingPlanActivity : AppCompatActivity(),PricingPlanContract.View {
         mPresenter?.attachView(this)
         setSupportActionBar(toolbar)
         chatTxt = intent.getStringExtra(CHAT_TXT) ?: ""
+        userId = intent.getStringExtra(USER_ID) ?: ""
         cv1.setOnClickListener {
             pricingPlan=500
             showPaymentDialog()
@@ -259,11 +261,21 @@ class PricingPlanActivity : AppCompatActivity(),PricingPlanContract.View {
     }
 
     override fun onPaymentSuccess(paymentDetail: PaymentDetail, purchaseTimestamp: Long) {
-        //use onActivityResult for sending success signal for sending msg
+        setPlanChatCount(userId,pricingPlanChatCountHashmap[pricingPlan]?:0,this)
+        setPlanPurchase(userId,true,this)
+        setPlanPurchaseTimestamp(userId, purchaseTimestamp.toString(),this)
+        setPlanValidity(userId,pricingPlanValidityHashmap[pricingPlan]?:0,this)
+        val returnIntent = Intent()
+        returnIntent.putExtra("chat",chatTxt)
+        setResult(RESULT_OK, returnIntent)
+        finish()
     }
 
     override fun onPaymentError(purchaseTimestamp: Long) {
-        //use onActivityResult for sending success signal for saving msg as not paid
+        val returnIntent = Intent()
+        returnIntent.putExtra("chat",chatTxt)
+        setResult(Activity.RESULT_CANCELED, returnIntent)
+        finish()
     }
 
     override fun onDestroy() {
@@ -312,11 +324,15 @@ class PricingPlanActivity : AppCompatActivity(),PricingPlanContract.View {
         @JvmField
         val STYLE = "style"
 
+        @JvmField
+        val USER_ID = "userId"
+
         @JvmStatic
-        fun createIntent(context: Context?, style: Int, chatTxt: String): Intent {
+        fun createIntent(context: Context?, style: Int, chatTxt: String,userId:String): Intent {
             return Intent(context, ChatDetailActivity::class.java).apply {
                 this.putExtra(STYLE, style)
                 this.putExtra(CHAT_TXT,chatTxt)
+                this.putExtra(USER_ID,userId)
             }
         }
     }

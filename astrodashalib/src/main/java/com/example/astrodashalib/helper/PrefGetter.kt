@@ -34,6 +34,10 @@ val GOOD_PREDICTION_REMEDY_KEY = "good_prediction_remedy"
 val BAD_PREDICTION_REMEDY_KEY = "bad_prediction_remedy"
 val COMPLEX_REMEDY_KEY = "complex_remedy"
 val ANTARDASHA_FAL_KEY = "antardasha_fal"
+val IS_PLAN_PURCHASED_KEY = "isPlanPurchased"
+val PLAN_CHAT_COUNT_KEY = "planChatCount"
+val PLAN_PURCHASE_TIMESTAMP_KEY = "planPurchaseTimestamp"
+val PLAN_VALIDITY_KEY = "planValidity"
 
 fun getSimpleRemediesCateogryQuestionAnswerListKey(userKey: String): String = SIMPLE_REMEDIES_CATEGORY_QUESTION_ANSWER_LIST_KEY + "_" + userKey
 
@@ -120,6 +124,62 @@ fun getSimpleRemedy(ruleId: String, questionId: String, userKey: String,context:
 
 fun getAntarRemedyKey(userKey: String): String {
     return ANTAR_REMEDY_KEY + "_" + userKey
+}
+
+fun getPlanPurchasedKey(userKey: String): String {
+    return IS_PLAN_PURCHASED_KEY + "_" + userKey
+}
+
+fun getPlanChatCountKey(userKey: String): String {
+    return PLAN_CHAT_COUNT_KEY + "_" + userKey
+}
+
+fun getPlanPurchaseTimestampKey(userKey: String): String {
+    return PLAN_PURCHASE_TIMESTAMP_KEY + "_" + userKey
+}
+
+fun getPlanValidityKey(userKey: String): String {
+    return PLAN_VALIDITY_KEY + "_" + userKey
+}
+
+fun setPlanPurchase(userKey: String,isPlanPurchased:Boolean,context: Context) {
+    val planPurchaseKey = getPlanPurchasedKey(userKey)
+    set(planPurchaseKey, isPlanPurchased,context)
+}
+
+fun isPlanPurchase(userKey: String,context: Context): Boolean {
+    val planPurchaseKey = getPlanPurchasedKey(userKey)
+    return getBoolean(planPurchaseKey,context)
+}
+
+fun setPlanChatCount(userKey: String,chatCount:Int,context: Context) {
+    val planPurchaseKey = getPlanChatCountKey(userKey)
+    set(planPurchaseKey, chatCount,context)
+}
+
+fun getPlanChatCount(userKey: String,context: Context): Int {
+    val planPurchaseKey = getPlanChatCountKey(userKey)
+    return getInt(planPurchaseKey,0,context)
+}
+
+fun setPlanPurchaseTimestamp(userKey: String, timestamp:String, context: Context) {
+    val planPurchaseKey = getPlanPurchaseTimestampKey(userKey)
+    set(planPurchaseKey, timestamp,context)
+}
+
+fun getPlanPurchaseTimestamp(userKey: String, context: Context): String? {
+    val planPurchaseKey = getPlanPurchaseTimestampKey(userKey)
+    return getString(planPurchaseKey,"",context)
+}
+
+fun setPlanValidity(userKey: String, validity:Int, context: Context) {
+    val planPurchaseKey = getPlanPurchaseTimestampKey(userKey)
+    set(planPurchaseKey, validity,context)
+}
+
+fun getPlanValidity(userKey: String, context: Context): Int {
+    val planPurchaseKey = getPlanPurchaseTimestampKey(userKey)
+    return getInt(planPurchaseKey,0,context)
 }
 
 fun setAntarRemedyList(userKey: String, remedyList: String,context: Context) {
